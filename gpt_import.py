@@ -1,6 +1,5 @@
-import openai       
-import config       # Has the API key 
-
+import config       # Has API & File Path
+import openai      
 def communicate_with_openai(prompt):
     openai.api_key = config.OPENAI_API_KEY 
 
@@ -10,7 +9,7 @@ def communicate_with_openai(prompt):
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": prompt}
         ],
-        max_tokens = 20         # Adjust for testing
+        max_tokens = 10         # Adjust for testing
     )
 
     return response['choices'][0]['message']['content']

@@ -1,5 +1,6 @@
 import config       # Has API & File Path
-import tts_defn     # Has output TTS
+import tts_file     # Has Coqui TTS
+import google_tts   # Has Google TTS
 import openai      
 def communicate_with_openai(prompt):
     openai.api_key = config.OPENAI_API_KEY 
@@ -16,7 +17,8 @@ def communicate_with_openai(prompt):
     return response['choices'][0]['message']['content']
 
 if __name__ == "__main__":
-    prompt = "Tell me the world's most common favorite color"       # Pull this from voice recognition later
+    prompt = "Insert Prompt Here"       # Pull this from voice recognition later
     result = communicate_with_openai(prompt)
-    tts_defn.tts(result)
+    # tts_file.tts(result)
+    google_tts.tts(result)
     print(result)

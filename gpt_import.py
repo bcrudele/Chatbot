@@ -1,5 +1,6 @@
 import config       # Has API & File Path
 import openai       # ChatGPT API
+import personalities  # Personalities file
  
 def communicate_with_openai(prompt):
     openai.api_key = config.OPENAI_API_KEY 
@@ -7,7 +8,7 @@ def communicate_with_openai(prompt):
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",   # Find best chat model later
         messages=[
-            {"role": "system", "content": "You are my butler-like companion, speak to me as a friend."},
+            {"role": "system", "content": personalities.aiBot},
             {"role": "user", "content": prompt}
         ],
         max_tokens = 100         # Adjust for testing

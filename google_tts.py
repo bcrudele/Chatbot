@@ -1,5 +1,5 @@
-from gtts import gTTS
-import pygame.mixer
+from gtts import gTTS      # Google TTS
+import pygame.mixer        # Audio Output Library
 
 def tts(string):
     tts = gTTS(text=string, lang='en', slow=False)

@@ -1,24 +1,24 @@
 import config       # Has API & File Path
-import tts_file     # Has Coqui TTS
-import google_tts   # Has Google TTS
-import openai      
+import openai       # ChatGPT API
+ 
 def communicate_with_openai(prompt):
     openai.api_key = config.OPENAI_API_KEY 
 
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",   # Find best chat model later
         messages=[
-            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "system", "content": "You are my butler-like companion, speak to me as a friend."},
             {"role": "user", "content": prompt}
         ],
-        max_tokens = 10         # Adjust for testing
+        max_tokens = 100         # Adjust for testing
     )
 
     return response['choices'][0]['message']['content']
-
+"""
 if __name__ == "__main__":
-    prompt = "Insert Prompt Here"       # Pull this from voice recognition later
+    prompt = "Tell me a funny story"       # Pull this from voice recognition later
     result = communicate_with_openai(prompt)
-    # tts_file.tts(result)
+    #tts_file.tts(result)
     google_tts.tts(result)
     print(result)
+"""

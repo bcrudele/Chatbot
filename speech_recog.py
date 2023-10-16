@@ -15,7 +15,7 @@ def user_listen():
             try:
                 audio = recognizer.listen(source, timeout=delay)
             except sr.WaitTimeoutError:
-                print("Try speaking, couldn't hear you:\n")
+                print("Try again, couldn't hear you:\n")
                 continue
 
         try:
@@ -23,4 +23,3 @@ def user_listen():
         except sr.RequestError:
             print("Unable to access the Google API")
             return None
-        

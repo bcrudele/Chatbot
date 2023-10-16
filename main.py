@@ -11,11 +11,12 @@ if __name__ == "__main__":
         start = time.time()
         result = gpt_import.communicate_with_openai(command)    # Sends user input to ChatGPT
         end = time.time()
-        print(end-start)
+        run_time = end - start
+        iter += 1
+        print(f'Response {iter} - GPT Run-time: {run_time : .2f}s')
         google_tts.tts(result, iter)                                  # Send ChatGPT result to TTS output
         print(result)
-        iter += 1
-
+        
         '''Notes for Later:
             - Improve run-time through a cache
             - Clean main.py

@@ -4,6 +4,7 @@ import speech_recognition as sr
 delay = 1.5  # timeout var in listen()
 
 def user_listen():
+    
     recognizer = sr.Recognizer()
     while True:
         with sr.Microphone() as source:

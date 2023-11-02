@@ -1,7 +1,7 @@
 import google_tts   # Has Google TTS
 import gpt_import   # Has ChatGPT 
 import speech_recog # Has Speech Recognition
-import time         # For runtime
+import time         # For runtime report
 import weather_scrape as ws # For Weather
 from googlesearch import search
 import requests
@@ -21,10 +21,9 @@ if __name__ == "__main__":
             break
         if weather_prompt in command:
             print("Searching weather data...")
-            city = 'West-Lafayette'    # add UI later
-            state = 'IN'               # add UI later
-            data = ws.weather_scrape(city, state)
+            data, state, city = ws.weather_scrape(command)
             print(data)         # returns data in the form [temp, outlook, range, wind speed]
+            print(state, city)
         else:
             start = time.time()
             result = gpt_import.communicate_with_openai(command)    # Sends user input to ChatGPT
@@ -32,8 +31,9 @@ if __name__ == "__main__":
             run_time = end - start
             iter += 1
             print(f'Response {iter} - GPT Run-time: {run_time : .2f}s')
-            google_tts.tts(result, iter)                                  # Send ChatGPT result to TTS output
             print(result)
+            google_tts.tts(result, iter)                                  # Send ChatGPT result to TTS output
+            
         
         '''Notes for Later:
             - Improve run-time through a cache

@@ -1,11 +1,15 @@
 from gtts import gTTS      # Google TTS
 import pygame.mixer        # Audio Output Library
 
-def tts(string):
+def tts(string, iter):
     tts = gTTS(text=string, lang='en', slow=False)
 
     # File Save
-    audio_filename = "google_tts.mp3"
+    base_name = "google_tts"
+    ext = ".mp3"
+    audio_filename = f"{base_name}({iter}){ext}"  # has an over-write issue, fix later
+    
+
     tts.save(audio_filename)
 
     # Initialize pygame.mixer

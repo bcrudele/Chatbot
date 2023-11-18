@@ -5,6 +5,8 @@ import nltk
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 from nltk import word_tokenize, pos_tag
+import time
+from requests.exceptions import HTTPError
 
 def location(command):
     tokens = word_tokenize(command[0].lower() + command[1:]) # lowercases first word
@@ -26,13 +28,21 @@ def weather_scrape(command):
 
     state, city = location(command)  # State and City finder
 
-    query = f"weather.com today today {city} {state}"
+    #query = f"weather.com today today {city} {state}"
+    query = f"stock broker today"
     results = []
-    for result in search(query):
-        results.append(result)
-        if len(results) >= 5:
-            break
-        print(result)
+    try:
+        for result in search(query):
+            #time.sleep(2)
+            results.append(result)
+            print(result)
+            if len(results) >= 5:
+                break
+
+    except HTTPError as error:
+        if error.response.status_code == 429:
+            print("Rate limit exceeded")
+            return(None, state, city)
 
     url = f'{results[0]}'
     # Send an HTTP GET request to the URL

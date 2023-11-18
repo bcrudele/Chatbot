@@ -30,7 +30,9 @@ def weather_scrape(command):
     results = []
     for result in search(query):
         results.append(result)
-        #print(result)
+        if len(results) >= 5:
+            break
+        print(result)
 
     url = f'{results[0]}'
     # Send an HTTP GET request to the URL
@@ -81,9 +83,11 @@ def weather_scrape(command):
             outlook_text = f'{outlook_text} skies'
         elif outlook_text == 'rainy':
             outlook_text = 'rain on the forecast'
-
-        data = f'{city} {state} is currently {temperature_text} degrees with {outlook_text}'
-        print(data)
+        else:                   # case for if not found
+            outlook_text = ''
+        if city != '' or state != '':  
+            data = f'{city} {state} is currently {temperature_text} with {outlook_text}'
+        else:
+            data = f'Its currently {temperature_text} with {outlook_text}'
+        #print(data)
     return(data, state, city)
-
-#weather_scrape("Tell me the weather in Miami, Florida!")

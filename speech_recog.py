@@ -2,12 +2,12 @@ import speech_recognition as sr
 # https://pypi.org/project/SpeechRecognition/
 
 delay = 1.5  # timeout var in listen()
-
+recognizer = sr.Recognizer()
 def user_listen():
-    recognizer = sr.Recognizer()
     while True:
         with sr.Microphone() as source:
             print("Start Speaking...")
+
             recognizer.adjust_for_ambient_noise(source)
 
             # timeout: the maximum time to wait for audio before timing out
@@ -23,3 +23,5 @@ def user_listen():
         except sr.RequestError:
             print("Unable to access the Google API")
             return None
+           
+  

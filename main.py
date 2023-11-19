@@ -1,20 +1,31 @@
 import google_tts   # Has Google TTS
-import gpt_import   # Has ChatGPT 
 import speech_recog # Has Speech Recognition
-import time         # For runtime report
-import weather_scrape as ws # For Weather
-import news_fetch as nf     # For News
-from googlesearch import search
-import requests
-from bs4 import BeautifulSoup
+import command_filter
 
 iter = 0            # Keeps track of iterations
-program_stop_command_prompt = 'hippopotamus'
-web_prompt = 'search'
-weather_prompt = 'weather'
-news_prompt = 'news'
+program_stop_command_prompt = 'stop'
+
+def shutdown():
+    google_tts.tts("Bye")
+    print("Shutdown Program")
+    return False
 
 if __name__ == "__main__":
+    i = True
+    google_tts.tts("What can I help you with today?")
+    command = speech_recog.user_listen()
+    while i:
+        continue_interaction, command_success = command_filter.text_decomp(command)
+        if not continue_interaction:
+            i = shutdown()
+        elif command_success:
+            google_tts.tts("Is there anything else I can do for you?")
+            follow_up = speech_recog.user_listen()
+            if ('no' or program_stop_command_prompt) in follow_up.lower():
+                i = shutdown()
+            else:
+                command = follow_up
+    """
     while True:
         command = speech_recog.user_listen() # Gets user input
         #command = 'the news'                # testing prompt
@@ -45,8 +56,8 @@ if __name__ == "__main__":
             print(result)
             google_tts.tts(result)                                  # Send ChatGPT result to TTS output
             
-        
-        '''Notes for Later:
+        """
+"""Notes for Later:
             - Improve run-time through a cache
             - Clean main.py
             - Create a clean function to remove google_tts().mp3 files or convert them as temp files
@@ -54,11 +65,13 @@ if __name__ == "__main__":
             - Force references to old chat logs on initial request
 
             IDEAS: 
-            
+
         # Personal Reminders
         def set_reminder(task, time):
             # Placeholder for reminder implementation
             pass
+            
+            DAILY STUFF
 
         # Random Facts
         def get_random_fact():
@@ -100,4 +113,7 @@ if __name__ == "__main__":
             # Placeholder for sentiment analysis implementation
             pass
 
-        '''
+        """
+
+
+# Get multithread shutdown function

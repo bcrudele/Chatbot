@@ -2,7 +2,6 @@ import speech_recognition as sr
 # https://pypi.org/project/SpeechRecognition/
 
 delay = 1.5  # timeout var in listen()
-recognizer = sr.Recognizer()
 def user_listen():
     
     recognizer = sr.Recognizer()
@@ -19,8 +18,16 @@ def user_listen():
             except sr.WaitTimeoutError:
                 print("Try again, couldn't hear you:\n")
                 continue
+            except sr.UnknownValueError:
+                print("Google Speech Recognition could not understand the audio.")
+                continue
+            except sr.RequestError as e:
+                print(f"Could not request results from Google Speech Recognition service; {e}")
+                continue
+        
 
         try:
+            print(recognizer.recognize_google(audio))
             return recognizer.recognize_google(audio)
         except sr.RequestError:
             print("Unable to access the Google API")

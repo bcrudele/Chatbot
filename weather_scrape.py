@@ -28,8 +28,7 @@ def weather_scrape(command):
 
     state, city = location(command)  # State and City finder
 
-    #query = f"weather.com today today {city} {state}"
-    query = f"stock broker today"
+    query = f"weather.com today today {city} {state}"
     results = []
     try:
         for result in search(query):

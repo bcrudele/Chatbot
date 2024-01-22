@@ -3,6 +3,7 @@ import speech_recognition as sr
 
 def listen_for_voice_command():
     recognizer = sr.Recognizer()
+    bot_name = "felix"
 
     while True:
         with sr.Microphone() as source:
@@ -11,7 +12,7 @@ def listen_for_voice_command():
                 audio = recognizer.listen(source, timeout=5)  # Adjust timeout as needed
                 command = recognizer.recognize_google(audio).lower()
 
-                if command:
+                if bot_name in command:
                     print(f"Command received: {command}")
 
             except sr.UnknownValueError:

@@ -1,135 +1,227 @@
-import string
-
-### Notes for later:
-# - expand training data
-# - remove filler words like "the"
-# - create case for words that are not in training data
-
-def find_emotion(emotion_dict):
-    ### CAN BE OPTIMIZED
-    # written by ChatGPT
-
-    # Check if 'total' key is present
-    #print(emotion_dict['total'])
-    if 'total' in emotion_dict and emotion_dict['total'] > 0:
-        # Calculate the percentage for each emotion
-        percentages = {emo: emotion_dict[emo] / emotion_dict['total'] * 100 for emo in emotion_dict.keys() if emo != 'total'}
-        return percentages
-    else:
-        # Return None if 'total' is not present or is zero
-        # Calculate the total sum of all emotion counts
-        total_emotion_sum = sum(emotion_dict[emo] for emo in emotion_dict.keys() if emo != 'total')
-
-        # Calculate the percentage for each emotion based on the total sum
-        percentages = {emo: emotion_dict[emo] / total_emotion_sum * 100 for emo in emotion_dict.keys() if emo != 'total'}
-        return percentages
-    
-
-
-def remove_punctuation(input_string):
-    translation_table = str.maketrans("", "", string.punctuation)
-    return input_string.translate(translation_table)
-
-
-def word_frequency(data, label):
-    words = dict()
-   
-    for i in range(len(data)):
-        #words_list = data[i].lower().split()  # creates the list for words
-        words_list = remove_punctuation(data[i].lower()).split()
-
-        for word in words_list:
-            if word not in words:             # for first word found
-                words[word] = {'total': 1, 'sadness': 0, 'anger': 0, 'love': 0, 'surprise': 0, 'fear': 0, 'happy': 0, 'content': 0}
-
-            else: 
-                words[word]['total'] += 1
-
-            if label[i] ==   'sadness':         
-                words[word]['sadness'] += 1
-
-            elif label[i] == 'anger':         
-                words[word]['anger'] += 1
-
-            elif label[i] == 'love':        
-                words[word]['love'] += 1
-
-            elif label[i] == 'surprise':        
-                words[word]['surprise'] += 1
-
-            elif label[i] == 'fear':         
-                words[word]['fear'] += 1
-
-            elif label[i] == 'happy':         
-                words[word]['happy'] += 1
-
-            else:
-                words[word]['content'] += 1
-
-    return words
-
-train_file = 'train_data/emotion_dataset.csv'
-
-with open(train_file, 'r') as f:
-    train_lines = f.readlines()
-
-train_data, train_label = [], []
-
-for line in train_lines:
-    split = line.rsplit(',', maxsplit=1)    # splits the line by the last comma
-    train_data.append(split[0].strip())     # get text/phrase
-    train_label.append(split[1].strip())    # get emotion
-
-words =  word_frequency(train_data, train_label)
-
-### FORMATTED OUTPUT
-
-#test_word = 'surely'
-#print(words[test_word])
-
-#print('Top 20 angry words')
-#sorted_words = sorted(words.items(), key=lambda x: (x[1]['anger'] / x[1]['total'], x[1]['total']), reverse=True)[:20]
-#for word, stats in sorted_words:
-#    print(f"Word: {word:<15} | Anger Ratio: {stats['anger']/stats['total']:.2%} | Total: {stats['total']}")
-
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import neattext.functions as nfx
 ###
-#max_emotion, max_count = find_max_emotion(words["you"])
-#print(max_emotion, max_count)
+from textblob import TextBlob
+###
+import nltk
+from nltk.tokenize import word_tokenize, sent_tokenize
+from nltk.tag import pos_tag
+from nltk.corpus import words
+###
+from collections import Counter
+###
+from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import CountVectorizer
+### 
 
-test_phrase = [
-    "in a sea of sorrow  sad often depression strikes bad  cry  darkness surrounds "
-]
+nltk.download('punkt')
+nltk.download('words')
 
-threshold = 20
+sample_text = ["Good morning what a wonderful day"]
+df = pd.read_csv("train_data/emotion_dataset.csv")
+#print(df.head())
+#print(df.shape)
+#print(df.isnull().sum())
+#df['Emotion'].value_counts().plot(kind='bar')
+#plt.show()
 
-for i in range(len(test_phrase)):
+# Plot Count Plot
+#plt.figure(figsize=(5,3))
+#sns.countplot(x='Emotion',data=df)
+#plt.show()
 
-    phrase_score = {
-        'sadness': 0,
-        'anger': 0,
-        'love': 0,
-        'surprise': 0,
-        'fear': 0,
-        'happy': 0,
-        'content': 0
-    }
-    # Convert the phrase to lowercase and split it into words
-    words_list = remove_punctuation(test_phrase[i].lower()).split()
+# Sentiment Analysis
+# Keyword Extraction for each emotion
 
-    for phrase_word in words_list:
-        emotion_percentages = find_emotion(words[phrase_word])
-        print(phrase_word, emotion_percentages)
+# Sentiment Analysis ##############################
+# Returns Positive, Negative, or Neutral for a word
+def get_sentiment(text):
+    blob = TextBlob(text)
+    sentiment = blob.sentiment.polarity
+    if sentiment > 0:
+        result = "Positive"
+    elif sentiment < 0:
+        result = "Negative"
+    else:
+        result = "Neutral"
+    return result
 
-        # Check if emotion_percentages is not None
-        if emotion_percentages:
-            # Increment the corresponding emotion count based on the highest percentage
-            max_emotion = max(emotion_percentages, key=emotion_percentages.get)
+df['Sentiment'] = df['Text'].apply(get_sentiment)
+# compare emotion v sentiment
+df.groupby(['Emotion', 'Sentiment']).size()
 
-            if emotion_percentages[max_emotion] > threshold:
-                phrase_score[max_emotion] += 1
+# Plot Word Counts ##############################
+#sns.catplot(x='Emotion', hue='Sentiment', data=df, kind='count')
+#plt.show()
 
-    print(phrase_score)
-    phrase_percent = find_emotion(phrase_score)
-    print(phrase_percent)
-    ### SOMETHING WRONG WITH LINE BELOW
-    print(max(phrase_percent,key=emotion_percentages.get ))
+# Download NLTK resources
+#nltk.download('averaged_perceptron_tagger')
+#english_words = set(words.words())
+
+# Text clean ######################
+# remove noise
+    # stopwords, special chars, punctuation
+df['Clean_Text'] = df['Text'].apply(nfx.remove_stopwords)
+df['Clean_Text'] = df['Clean_Text'].apply(nfx.remove_userhandles)
+df['Clean_Text'] = df['Clean_Text'].apply(nfx.remove_punctuations)
+# Additional step to remove non-English words and small single characters using NLTK
+#df['Clean_Text'] = df['Clean_Text'].apply(lambda x: ' '.join(word for word in word_tokenize(x) if len(word) > 1 and word.lower() in english_words))
+# Additional step to remove proper nouns and small single characters using NLTK
+#df['Clean_Text'] = df['Clean_Text'].apply(lambda x: ' '.join(word for word, pos in pos_tag(word_tokenize(x)) if len(word) > 1 and (word != "feel" and word != "feeling")and word.lower() in english_words and pos != 'NNP'))
+## UNCOMMENT ABOVE OR BELOW FOR MODEL, ABOVE LINE CAUSES SLOWDOWN
+#df['Clean_Text'] = df['Clean_Text'].apply(lambda x: ' '.join(word for word, pos in pos_tag(word_tokenize(x)) if len(word) > 1 and word.lower() in english_words and pos != 'NNP'))
+
+# Drop rows where 'Clean_Text' is empty
+#df = df[df['Clean_Text'].str.strip() != '']
+
+# Keyword Extraction
+# find most common words per emotion
+
+def extract_keywords(text, num=50):
+    tokens = [tok for tok in text.split()]
+    most_common_tokens = Counter(tokens).most_common(num)
+    return dict(most_common_tokens)
+
+emotion_list = df['Emotion'].unique().tolist()
+print(emotion_list)
+
+happy_list = df[df['Emotion'] == 'happy']['Clean_Text'].tolist()
+happy_docx = ' '.join(happy_list)
+
+anger_list = df[df['Emotion'] == 'anger']['Clean_Text'].tolist()
+anger_docx = ' '.join(anger_list)
+
+sadness_list = df[df['Emotion'] == 'sadness']['Clean_Text'].tolist()
+sadness_docx = ' '.join(sadness_list)
+
+love_list = df[df['Emotion'] == 'love']['Clean_Text'].tolist()
+love_docx = ' '.join(love_list)
+
+surprise_list = df[df['Emotion'] == 'surprise']['Clean_Text'].tolist()
+surprise_docx = ' '.join(surprise_list)
+
+fear_list = df[df['Emotion'] == 'fear']['Clean_Text'].tolist()
+fear_docx = ' '.join(fear_list)
+
+# Extracting Keywords
+keywords_happy = extract_keywords(happy_docx)
+keywords_anger = extract_keywords(anger_docx)
+keywords_sadness = extract_keywords(sadness_docx)
+keywords_love = extract_keywords(love_docx)
+keywords_surprise = extract_keywords(surprise_docx)
+keywords_fear = extract_keywords(fear_docx)
+#print(keywords_happy)
+
+# Word Bar Graph for Common Words ##########################
+def plot_most_common_words(mydict):
+    df_01 = pd.DataFrame(mydict.items(), columns=['token','count'])
+    sns.barplot(x='token', y='count', data=df_01)
+    plt.show()
+
+#plot_most_common_words(keywords_happy)
+#plot_most_common_words(keywords_anger)
+#plot_most_common_words(keywords_sadness)
+#plot_most_common_words(keywords_love)
+#plot_most_common_words(keywords_surprise)
+#plot_most_common_words(keywords_fear)
+
+## Word Cloud Image ###########################
+from wordcloud import WordCloud
+
+def plot_wordcloud(docx):
+    mywordcloud = WordCloud().generate(docx)
+    plt.figure(figsize=(20,10))
+    plt.imshow(mywordcloud,interpolation='bilinear')
+    plt.axis('off')
+    plt.show()
+
+#plot_wordcloud(surprise_docx)
+
+## ML ####################################
+# NB
+# Logistic Reg
+# KNN
+
+# Building
+Xfeatures = df['Clean_Text']
+ylabels = df['Emotion']
+
+# Vectorize
+cv = CountVectorizer()
+X = cv.fit_transform(Xfeatures)  # Fit and transform the text data
+
+# Get features by name
+cv.get_feature_names_out()
+
+# Convert to dense array
+X.toarray()
+
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(X,ylabels,test_size=0.3, random_state=42)
+
+# Build Model
+nv_model = MultinomialNB()
+nv_model.fit(X_train, y_train)
+
+# Accuracy
+# method 1
+nv_model.score(X_test, y_test)
+
+# Predictions 
+y_pred_for_nv = nv_model.predict(X_test)
+
+### Make a prediction
+vect = cv.transform(sample_text).toarray()
+nv_model.predict(vect)
+
+## Check for accuracy/confidence
+nv_model.predict_proba(vect)
+nv_model.classes_
+np.max(nv_model.predict_proba(vect))
+
+def predict_emotion(sample_text, model):
+    myvect = cv.transform(sample_text).toarray()
+    prediction = model.predict(myvect)
+    pred_proba = model.predict_proba(myvect)
+    pred_percentage_for_all = dict(zip(model.classes_, pred_proba[0]))
+    print(pred_percentage_for_all)
+    print("NB Model -> Prediction:{}, confidence: {}".format(prediction[0], np.max(pred_proba)))
+    #print(prediction[0])  # prints the emotion name
+    return pred_percentage_for_all
+
+predict_emotion(sample_text, nv_model)
+
+### Model evaluation #################
+#print(classification_report(y_test, y_pred_for_nv))
+
+# Confusion matrix
+#confusion_matrix(y_test, y_pred_for_nv)
+
+### Save Model
+import joblib
+model_file = open("emotion_classifier_nv_model_22_january_2024.pkl", "wb")
+joblib.dump(nv_model,model_file)
+model_file.close()
+
+### Model Interpretation
+# Eli5
+# Lime
+# Shap
+
+# Log Regression
+#lr_model = LogisticRegression()
+#lr_model.fit(X_train,y_train)
+
+## UNFINISHED
+#print("Printing for LR model")
+# Accuracy
+#print("LR Score ->", lr_model.score(X_test, y_test))
+
+# Single Predict
+#print(predict_emotion(sample_text, lr_model))

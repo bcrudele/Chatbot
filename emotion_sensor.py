@@ -19,12 +19,34 @@ from sklearn.metrics import accuracy_score, confusion_matrix, classification_rep
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import CountVectorizer
 ### 
+import time
+###
+from wordcloud import WordCloud
+
+test_phrase = input("Enter a sentence to test: ")
+
+program_begin = time.time()
+########################################################
+download_start = time.time()
 
 nltk.download('punkt')
 nltk.download('words')
 
-sample_text = ["Good morning what a wonderful day"]
+download_stop = time.time()
+print(f'NLTK download: {round(download_stop-download_start,2)}s')
+
+########################################################
+
+sample_text = [""]
+sample_text[0] = test_phrase    # Comment to use line above in testing
+print(sample_text)
+
+csv_start = time.time()
 df = pd.read_csv("train_data/emotion_dataset.csv")
+csv_stop = time.time()
+print(f'CSV read: {round(csv_stop-csv_start,2)}s')
+
+########################################################
 #print(df.head())
 #print(df.shape)
 #print(df.isnull().sum())
@@ -39,6 +61,8 @@ df = pd.read_csv("train_data/emotion_dataset.csv")
 # Sentiment Analysis
 # Keyword Extraction for each emotion
 
+########################################################
+
 # Sentiment Analysis ##############################
 # Returns Positive, Negative, or Neutral for a word
 def get_sentiment(text):
@@ -52,9 +76,14 @@ def get_sentiment(text):
         result = "Neutral"
     return result
 
+sentiment_start = time.time()
 df['Sentiment'] = df['Text'].apply(get_sentiment)
 # compare emotion v sentiment
 df.groupby(['Emotion', 'Sentiment']).size()
+sentiment_stop = time.time()
+print(f'Sentiment: {round(sentiment_stop-sentiment_start,2)}s')
+
+########################################################
 
 # Plot Word Counts ##############################
 #sns.catplot(x='Emotion', hue='Sentiment', data=df, kind='count')
@@ -67,9 +96,16 @@ df.groupby(['Emotion', 'Sentiment']).size()
 # Text clean ######################
 # remove noise
     # stopwords, special chars, punctuation
+
+########################################################
+
+clean_start = time.time()
 df['Clean_Text'] = df['Text'].apply(nfx.remove_stopwords)
 df['Clean_Text'] = df['Clean_Text'].apply(nfx.remove_userhandles)
 df['Clean_Text'] = df['Clean_Text'].apply(nfx.remove_punctuations)
+clean_stop = time.time()
+print(f'Text Clean: {round(clean_stop-clean_start,2)}s')
+
 # Additional step to remove non-English words and small single characters using NLTK
 #df['Clean_Text'] = df['Clean_Text'].apply(lambda x: ' '.join(word for word in word_tokenize(x) if len(word) > 1 and word.lower() in english_words))
 # Additional step to remove proper nouns and small single characters using NLTK
@@ -80,6 +116,8 @@ df['Clean_Text'] = df['Clean_Text'].apply(nfx.remove_punctuations)
 # Drop rows where 'Clean_Text' is empty
 #df = df[df['Clean_Text'].str.strip() != '']
 
+########################################################
+
 # Keyword Extraction
 # find most common words per emotion
 
@@ -88,8 +126,9 @@ def extract_keywords(text, num=50):
     most_common_tokens = Counter(tokens).most_common(num)
     return dict(most_common_tokens)
 
+keyword_start = time.time()
 emotion_list = df['Emotion'].unique().tolist()
-print(emotion_list)
+#print(emotion_list) # Shows all emotions
 
 happy_list = df[df['Emotion'] == 'happy']['Clean_Text'].tolist()
 happy_docx = ' '.join(happy_list)
@@ -117,6 +156,10 @@ keywords_love = extract_keywords(love_docx)
 keywords_surprise = extract_keywords(surprise_docx)
 keywords_fear = extract_keywords(fear_docx)
 #print(keywords_happy)
+keyword_stop = time.time()
+print(f'Keywords: {round(keyword_stop-keyword_start,2)}s')
+
+########################################################
 
 # Word Bar Graph for Common Words ##########################
 def plot_most_common_words(mydict):
@@ -132,7 +175,6 @@ def plot_most_common_words(mydict):
 #plot_most_common_words(keywords_fear)
 
 ## Word Cloud Image ###########################
-from wordcloud import WordCloud
 
 def plot_wordcloud(docx):
     mywordcloud = WordCloud().generate(docx)
@@ -143,12 +185,10 @@ def plot_wordcloud(docx):
 
 #plot_wordcloud(surprise_docx)
 
-## ML ####################################
-# NB
-# Logistic Reg
-# KNN
-
+########################################################
+    
 # Building
+model_start = time.time()
 Xfeatures = df['Clean_Text']
 ylabels = df['Emotion']
 
@@ -190,24 +230,32 @@ def predict_emotion(sample_text, model):
     prediction = model.predict(myvect)
     pred_proba = model.predict_proba(myvect)
     pred_percentage_for_all = dict(zip(model.classes_, pred_proba[0]))
-    print(pred_percentage_for_all)
-    print("NB Model -> Prediction:{}, confidence: {}".format(prediction[0], np.max(pred_proba)))
+    #print(pred_percentage_for_all)    # SHOWS PERCENT CONFIDENCE FOR EACH EMOTION
+    print(f'\nNaive Bayes Model:\n -> Prediction:{prediction[0]} with {round(np.max(pred_proba) * 100,3)}% confidence\n')
     #print(prediction[0])  # prints the emotion name
     return pred_percentage_for_all
 
 predict_emotion(sample_text, nv_model)
-
+model_stop = time.time()
+print(f'Time Model: {round(model_stop-model_start,2)}s')
 ### Model evaluation #################
 #print(classification_report(y_test, y_pred_for_nv))
 
 # Confusion matrix
 #confusion_matrix(y_test, y_pred_for_nv)
 
+########################################################
+
 ### Save Model
 import joblib
+save_start = time.time()
 model_file = open("emotion_classifier_nv_model_22_january_2024.pkl", "wb")
 joblib.dump(nv_model,model_file)
 model_file.close()
+save_stop = time.time()
+print(f'Model Save Time: {round(save_stop-save_start,2)}s')
+
+########################################################
 
 ### Model Interpretation
 # Eli5
@@ -225,3 +273,8 @@ model_file.close()
 
 # Single Predict
 #print(predict_emotion(sample_text, lr_model))
+
+########################################################
+
+program_stop = time.time()
+print(f'Execution Time: {round(program_stop-program_begin,2)}s')
